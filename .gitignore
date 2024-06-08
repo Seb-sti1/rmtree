@@ -1,0 +1,8 @@
+.idea
+
+venv
+
+data/**
+export/**
+
+notes.md

@@ -1,0 +1,6 @@
+fpdf2
+pypdf
+cairosvg
+rmc @ git+https://github.com/EelcovanVeldhuizen/rmc@7cb02ef
+tqdm
+
