@@ -107,11 +107,11 @@ class NotebookPage:
         """
         return self.version
 
-    def export(self) -> None | str:
+    def export(self, debug) -> None | str:
         if self.get_version() == FileVersion.EMPTY:
             return None
 
-        path = os.path.join("/tmp", f"{self.uid}.svg")
+        path = os.path.join("/tmp" if not debug else DST_FOLDER, f"{self.uid}.svg")
 
         with open(path, "w") as fout:
             convert_rm(Path(os.path.join(SRC_FOLDER, self.notebook.uid, self.uid + ".rm")), "svg", fout)
@@ -142,7 +142,7 @@ class Notebook(File):
 
         assert self.content["pageCount"] == len(self.pages)
 
-    def export(self, files):
+    def export(self, files, debug=False):
         path = os.path.join(DST_FOLDER, self.get_path(files))
         fullpath = os.path.join(DST_FOLDER, self.get_fullpath(files))
 
@@ -151,7 +151,7 @@ class Notebook(File):
         svgs = []
         for page in self.pages:
             try:
-                svg = page.export()
+                svg = page.export(debug)
                 svgs.append(svg)
             except Exception as e:
                 print(f"Failed to export {page.uid} of {self.uid}: {e}")
