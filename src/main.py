@@ -49,7 +49,6 @@ def main():
         print(count_extension())
 
     files = get_files()
-    i = 0
 
     progress = tqdm(files)
     for uid in files:
@@ -57,7 +56,6 @@ def main():
         progress.set_description(uid)
         if isinstance(f, Notebook):
             f.export(files)
-            i += 1
 
 
 if __name__ == "__main__":

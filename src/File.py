@@ -166,15 +166,24 @@ class Notebook(File):
 
                 for page_num, (page, svg) in enumerate(zip(background.pages, svgs)):
                     if svg is not None:
-                        cairosvg.svg2pdf(url=svg, write_to=svg + ".pdf")
+                        # use dpi=72 so that the pdf has the same size as the svg
+                        cairosvg.svg2pdf(url=svg, write_to=svg + ".pdf", dpi=72)
+                        # get the page
                         svg_pdf = PdfReader(svg + ".pdf")
                         assert len(svg_pdf.pages) == 1
-                        # scale the page to the background pdf
                         svg_pdf_p = svg_pdf.pages[0]
-                        ratio = page.mediabox.width / svg_pdf_p.mediabox.width
-                        page.merge_transformed_page(svg_pdf_p,
-                                                    Transformation().scale(ratio))
-                    output_pdf.add_page(page)
+                        # scale the page
+                        ratio = 856 / page.mediabox.height
+                        page.scale(ratio, ratio)
+                        # move it at the right place
+                        svg_pdf_p.merge_transformed_page(page,
+                                                         Transformation().translate(
+                                                             (svg_pdf_p.mediabox.width - page.mediabox.width) / 2,
+                                                             svg_pdf_p.mediabox.height - page.mediabox.height),
+                                                         over=False)
+                        output_pdf.add_page(svg_pdf_p)
+                    else:
+                        output_pdf.add_page(page)
 
                 output_pdf.write(fullpath + ".pdf")
                 output_pdf.close()
