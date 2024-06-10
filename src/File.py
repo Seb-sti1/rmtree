@@ -80,11 +80,11 @@ class File:
 
 class NotebookPage:
 
-    def __init__(self, notebook: Notebook, definition: json):
-        # TODO deals with layers ?
+    def __init__(self, uid: str, notebook: Notebook, isContentVersion1: bool, definition: json):
         self.definition = definition
+        self.isContentVersion1 = isContentVersion1
         self.notebook = notebook
-        self.uid = self.definition["id"]
+        self.uid = uid
 
         self.path = os.path.join(SRC_FOLDER, self.notebook.uid, self.uid + ".rm")
         self.version = FileVersion.UNKNOWN
@@ -123,12 +123,15 @@ class Notebook(File):
 
     def __init__(self, uid: str):
         super().__init__(uid)
-        assert self.content["formatVersion"] == 2  # this software is only compatible with .content version 2
+        assert self.content["formatVersion"] in [1, 2]  # this software is only compatible with .content version 2 or 1
+
+        pages = self.content["cPages"]["pages"] if self.content["formatVersion"] == 2 else self.content["pages"]
 
         self.pages: list[NotebookPage] = []
-        for p in self.content["cPages"]["pages"]:
+        for p in pages:
             if "deleted" not in p:
-                p = NotebookPage(self, p)
+                uid = p if self.content["formatVersion"] == 1 else p["id"]
+                p = NotebookPage(uid, self, self.content["formatVersion"] == 1, p)
 
                 if p.get_version() != FileVersion.EMPTY:
                     assert p.get_version() == FileVersion.V6  # this software is only compatible with .rm version 6
