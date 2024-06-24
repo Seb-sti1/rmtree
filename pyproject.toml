@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rmtree"
-version = "0.1.0"
+version = "0.2.0a"
 requires-python = ">=3.10"
 readme = "README.md"
-license = { file = "LICENSE.txt" }
+license = { file = "LICENSE" }
 
 description = "Convert the file tree from the reMarkable tablet to PDFs"
 authors = ["Seb-sti1"]
@@ -16,7 +16,8 @@ dependencies = [
     "fpdf2",
     "pypdf",
     "cairosvg",
-    "rmc@git+https://github.com/EelcovanVeldhuizen/rmc#egg=7cb02ef",
+    "rmc@git+https://github.com/Seb-sti1/rmc.git@bdb353feff968c9061fd4232699e58e95d4429db",
+    "rmscene",
     "tqdm",
 ]
 
