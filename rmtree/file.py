@@ -15,6 +15,18 @@ from rmc.cli import convert_rm
 # id are formatted as 8-4-4-4-12 alphanumerical characters
 ID_PATTERN = re.compile(r"([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})\.?.*")
 
+# svg viewBox
+SVG_VIEWBOX_PATTERN = re.compile(r"^<svg .+ viewBox=\"([\-\d.]+) ([\-\d.]+) ([\-\d.]+) ([\-\d.]+)\">$")
+
+# compute default x shift
+SCREEN_WIDTH = 1404
+SCREEN_HEIGHT = 1872
+SCREEN_DPI = 226
+SCALE = 72.0 / SCREEN_DPI
+
+PAGE_WIDTH_PT = SCREEN_WIDTH * SCALE
+PAGE_HEIGHT_PT = SCREEN_HEIGHT * SCALE
+
 # the header of a rm binary file, used to detect the version of the file
 RM_VERSION = "reMarkable .lines file, version="
 
@@ -126,24 +138,35 @@ class NotebookPage:
         """
         return self.version
 
-    def export(self, dst="/tmp") -> None | str:
+    def export(self, dst="/tmp") -> (str, (float, float, float, float)):
         """
         Use rmc to convert a rm binary file to a svg
 
         :param dst: the destination path where to store the svg
-        :return:
+        :return: the path to the svg, and the x,y shift in the svg coordinates
         """
-
-        if self.get_version() == FileVersion.EMPTY:
-            return None
-
+        assert self.get_version() != FileVersion.EMPTY
         input_rm = Path(os.path.join(self.src, self.notebook.uid, self.uid + ".rm"))
         output_svg = os.path.join(dst, f"{self.uid}.svg")
 
         with open(output_svg, "w") as fout:
             convert_rm(input_rm, "svg", fout)
 
-        return output_svg
+        x_shift, y_shift, w, h = 0, 0, PAGE_WIDTH_PT, PAGE_HEIGHT_PT
+        with open(output_svg, "r") as svg:
+            found = False
+            for line in svg.readlines():
+                res = SVG_VIEWBOX_PATTERN.match(line)
+                if res is not None:
+                    x_shift, y_shift = float(res.group(1)), float(res.group(2))
+                    w, h = float(res.group(3)), float(res.group(4))
+                    found = True
+                    break
+
+            if not found:
+                logger.warning(f"Can't find x shift, y shift, width and height for {self.uid}")
+
+        return output_svg, (x_shift, y_shift, w, h)
 
 
 class Notebook(File):
@@ -179,52 +202,59 @@ class Notebook(File):
         path = os.path.join(dst, self.get_path(files))
         fullpath = os.path.join(dst, self.get_fullpath(files))
 
+        # create the folder tree (if needed)
         os.makedirs(path, exist_ok=True)
 
-        svgs = []
-        for page in self.pages:
-            try:
-                svg = page.export("/tmp" if not debug else dst)
-                svgs.append(svg)
-            except Exception as e:
-                logger.warning(f"Failed to export {page.uid} of {self.uid}: {e}")
-
         if os.path.exists(os.path.join(self.src, self.uid + ".pdf")):
-            if all([svg is None for svg in svgs]):
+            if all([page == FileVersion.EMPTY for page in self.pages]):
                 # this is only a pdf
+                logger.debug(f"[pdf] {str(self)} -> {fullpath}")
                 shutil.copyfile(os.path.join(self.src, self.uid + ".pdf"), fullpath + ".pdf")
             else:
                 background = PdfReader(os.path.join(self.src, self.uid + ".pdf"))
                 output_pdf = PdfWriter()
 
-                for page_num, (page, svg) in enumerate(zip(background.pages, svgs)):
-                    if svg is not None:
-                        # use dpi=72 so that the pdf has the same size as the svg
-                        cairosvg.svg2pdf(url=svg, write_to=svg + ".pdf", dpi=72)
-                        # get the page
-                        svg_pdf = PdfReader(svg + ".pdf")
-                        assert len(svg_pdf.pages) == 1
-                        svg_pdf_p = svg_pdf.pages[0]
-                        # scale the page
-                        ratio = 856 / page.mediabox.height
-                        page.scale(ratio, ratio)
-                        # move it at the right place
-                        svg_pdf_p.merge_transformed_page(page,
-                                                         Transformation().translate(
-                                                             (svg_pdf_p.mediabox.width - page.mediabox.width) / 2,
-                                                             svg_pdf_p.mediabox.height - page.mediabox.height),
-                                                         over=False)
-                        output_pdf.add_page(svg_pdf_p)
+                for page, background_page in zip(self.pages, background.pages):
+                    if page.get_version() != FileVersion.EMPTY:
+                        try:
+                            svg, (x_shift, y_shift, w, h) = page.export("/tmp" if not debug else dst)
+                            # use dpi=72 so that the pdf has the same size as the svg
+                            cairosvg.svg2pdf(url=svg, write_to=svg + ".pdf", dpi=72)
+                            # get the background_page
+                            svg_pdf = PdfReader(svg + ".pdf")
+                            assert len(svg_pdf.pages) == 1
+                            svg_pdf_p = svg_pdf.pages[0]
+                            # merge page depending on which, between the svg and the background pdf, is bigger
+                            if (svg_pdf_p.mediabox.height > background_page.mediabox.height
+                                    or svg_pdf_p.mediabox.width > background_page.mediabox.width):
+                                # move it at the right place
+                                t = Transformation().translate(
+                                    - x_shift - background_page.mediabox.width / 2,
+                                    svg_pdf_p.mediabox.height - background_page.mediabox.height + y_shift)
+                                svg_pdf_p.merge_transformed_page(background_page, t, over=False)
+                                output_pdf.add_page(svg_pdf_p)
+                            else:
+                                # move it at the right place
+                                t = Transformation().translate(
+                                    (background_page.mediabox.width - svg_pdf_p.mediabox.width)/2,
+                                    background_page.mediabox.height - svg_pdf_p.mediabox.height)
+                                background_page.merge_transformed_page(svg_pdf_p, t)
+                                output_pdf.add_page(background_page)
+                        except Exception as e:
+                            logger.warning(f"Failed to export {page.uid} of {self.uid}: {e}")
                     else:
-                        output_pdf.add_page(page)
+                        output_pdf.add_page(background_page)
 
                 output_pdf.write(fullpath + ".pdf")
                 output_pdf.close()
         else:
             merger = PdfWriter()
-            for svg in svgs:
-                if svg is not None:
+            for background_page in self.pages:
+                try:
+                    svg, _ = background_page.export("/tmp" if not debug else dst)
                     cairosvg.svg2pdf(url=svg, write_to=svg + ".pdf")
-                    merger.append(str(svg + ".pdf"))
+                    merger.append(svg + ".pdf")
+                except Exception as e:
+                    logger.warning(f"Failed to export {background_page.uid} of {self.uid}: {e}")
             merger.write(fullpath + ".pdf")
             merger.close()
