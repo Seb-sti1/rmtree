@@ -1,6 +1,6 @@
 fpdf2
 pypdf
 cairosvg
-rmc @ git+https://github.com/EelcovanVeldhuizen/rmc@7cb02ef
+rmc@git+https://github.com/Seb-sti1/rmc.git@bdb353feff968c9061fd4232699e58e95d4429db
 tqdm
-
+rmscene

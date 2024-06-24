@@ -1,8 +1,13 @@
 import argparse
+import json
+import logging
+import os
+import typing as tp
+from pathlib import Path
 
 from tqdm import tqdm
 
-from .file import *
+from .file import Folder, File, FileType, Notebook, ID_PATTERN
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +55,7 @@ def get_file_by_id(src: str, uid: str) -> File | None:
         return Notebook(src, uid)
 
 
-def list_files(src: str) -> Dict[str, File]:
+def list_files(src: str) -> tp.Dict[str, File]:
     """
     List the reMarkable file from the src folder. One reMarkable file can be composed of multiple actual files:
 
@@ -90,9 +95,9 @@ def main(args=None):
     # set up the logging
     level = logging.WARN
     if args.verbose == 1:
-        level = logging.DEBUG
-    elif args.verbose >= 2:
         level = logging.INFO
+    elif args.verbose >= 2:
+        level = logging.DEBUG
     logging.basicConfig(level=level)
 
     # print debug information on the files

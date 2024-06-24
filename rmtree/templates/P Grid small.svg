@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 200 200">
+    <defs>
+        <pattern id="template" x="-5" y="4" width="16" height="16" patternUnits="userSpaceOnUse">
+            <rect style="fill:rgb(255,255,255);stroke-width:.4;stroke:rgb(150,150,150)" x1="0" y1="0" width="16" height="16"/>
+        </pattern>
+    </defs>
+    <rect fill="url(#template)" x="25" y="25" width="150" height="150"/>
+</svg>
