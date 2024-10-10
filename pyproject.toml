@@ -16,7 +16,8 @@ dependencies = [
     "fpdf2",
     "pypdf",
     "cairosvg",
-    "rmc@git+https://github.com/Seb-sti1/rmc#egg=fix-strokes-outside-of-svg",
+    "rmc@git+https://github.com/Seb-sti1/rmc.git@fix-strokes-outside-of-svg",
+    "rmscene",
     "tqdm",
 ]
 

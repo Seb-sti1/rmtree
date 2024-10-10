@@ -9,8 +9,10 @@ from pathlib import Path
 from typing import Dict
 
 import cairosvg
+import rmc
 from pypdf import PdfReader, PdfWriter, Transformation
-from rmc.cli import convert_rm
+from rmc.exporters.svg import tree_to_svg
+from rmscene import read_tree
 
 # id are formatted as 8-4-4-4-12 alphanumerical characters
 ID_PATTERN = re.compile(r"([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})\.?.*")
@@ -116,6 +118,9 @@ class NotebookPage:
         self.notebook = notebook
         self.uid = uid
         self.src = src
+        self.template = None
+        if not self.isContentVersion1 and "template" in definition:
+            self.template = None if definition["template"]["value"] == "Blank" else definition["template"]["value"]
 
         self.path = os.path.join(self.src, self.notebook.uid, self.uid + ".rm")
         self.version = FileVersion.UNKNOWN
@@ -149,8 +154,17 @@ class NotebookPage:
         input_rm = Path(os.path.join(self.src, self.notebook.uid, self.uid + ".rm"))
         output_svg = os.path.join(dst, f"{self.uid}.svg")
 
-        with open(output_svg, "w") as fout:
-            convert_rm(input_rm, "svg", fout)
+        template = Path(os.path.join(Path(__file__).parent, "templates", self.template + ".svg")) \
+            if self.template is not None else None
+
+        if template is not None and not template.exists():
+            logger.warning(f"Can't find the specified template file ({template.name})")
+            template = None
+
+        with open(input_rm, 'rb') as f:
+            with open(output_svg, "w") as fout:
+                tree = read_tree(f)
+                tree_to_svg(tree, fout, template)
 
         x_shift, y_shift, w, h = 0, 0, PAGE_WIDTH_PT, PAGE_HEIGHT_PT
         with open(output_svg, "r") as svg:
@@ -236,7 +250,7 @@ class Notebook(File):
                             else:
                                 # move it at the right place
                                 t = Transformation().translate(
-                                    (background_page.mediabox.width - svg_pdf_p.mediabox.width)/2,
+                                    (background_page.mediabox.width - svg_pdf_p.mediabox.width) / 2,
                                     background_page.mediabox.height - svg_pdf_p.mediabox.height)
                                 background_page.merge_transformed_page(svg_pdf_p, t)
                                 output_pdf.add_page(background_page)
