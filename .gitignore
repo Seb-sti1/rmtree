@@ -1,8 +1,8 @@
 .idea
 
-venv
+.venv/
 
-data/**
-export/**
+data/
+export/
 
 notes.md

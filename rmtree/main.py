@@ -90,9 +90,9 @@ def main(args=None):
     # set up the logging
     level = logging.WARN
     if args.verbose == 1:
-        level = logging.DEBUG
-    elif args.verbose >= 2:
         level = logging.INFO
+    elif args.verbose >= 2:
+        level = logging.DEBUG
     logging.basicConfig(level=level)
 
     # print debug information on the files

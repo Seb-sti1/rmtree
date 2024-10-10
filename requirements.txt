@@ -1,6 +1,6 @@
 fpdf2
 pypdf
 cairosvg
-rmc @ git+https://github.com/EelcovanVeldhuizen/rmc@7cb02ef
+rmc@git+https://github.com/Seb-sti1/rmc.git@fix-strokes-outside-of-svg
 tqdm
-
+rmscene
