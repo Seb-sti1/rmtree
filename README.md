@@ -14,9 +14,22 @@ uses [rmscene](https://github.com/ricklupton/rmscene) v0.5.0 instead of v0.2.0_
 
 _Please before submitting an issue check the [Known issues](#known-issues) section and the already existing issues._
 
+## How to install?
+
+Start installing the dependencies:
+
+```sh
+apt install libcairo2
+python3.11 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+_As an alternative, you can also build the rmtree package and install it using pipx_
+
 ## How to use?
 
-After installing the package in the python environment, it is intended to be used with the following commands:
+After installing, it is intended to be used with the following commands:
 
 ```sh
 # replace [ip] by the ip of the remarkable. 
