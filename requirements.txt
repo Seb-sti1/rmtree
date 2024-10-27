@@ -1,3 +1,7 @@
+# these are the dev dependencies
+setuptools
+build
+
 fpdf2
 pypdf
 cairosvg
