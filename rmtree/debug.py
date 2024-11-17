@@ -89,12 +89,12 @@ def test_assertion(src: Path, custom_print=print) -> tp.Tuple[int, int]:
     errors = {}
     for uuid in uuid_list:
         # if it's a tombstone or dirty file then there are no other available files
-        if (exists(uuid + ".tombstone") or exists(uuid + ".dirty")) and \
-                any([exists(uuid + "." + ext) for ext in know_file_extensions + know_folder_extensions
-                     if ext not in ["tombstone", "dirty", "RM_FOLDER"]]
-                    + [exists(uuid)]):
-            errors[uuid] = {"type": "assert",
-                            "reason": "tombstone or dirty is present with useful files."}
+        if exists(uuid + ".tombstone") or exists(uuid + ".dirty"):
+            if any([exists(uuid + "." + ext) for ext in know_file_extensions + know_folder_extensions
+                    if ext not in ["tombstone", "dirty", "RM_FOLDER"]]
+                   + [exists(uuid)]):
+                errors[uuid] = {"type": "assert",
+                                "reason": "tombstone or dirty is present with useful files."}
             continue
 
         # otherwise there should be a metadata and a content
