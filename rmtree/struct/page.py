@@ -11,6 +11,7 @@ import cairosvg
 from pypdf import PdfReader, PageObject
 from rmc.exporters.svg import tree_to_svg, PAGE_WIDTH_PT, PAGE_HEIGHT_PT
 from rmscene import read_tree
+import rmtree.templates as templates
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +86,7 @@ class PageRM(Page):
         :return: A PageObject containing the drawing of the associated rm file
         """
         # find the template
-        template = Path(os.path.join(Path(__file__).parent, "templates", self.template + ".svg")) \
+        template = Path(os.path.join(Path(templates.__file__).parent, self.template + ".svg")) \
             if self.template is not None else None
         if template is not None and not template.exists():
             logger.warning(f"Can't find the specified template file ({template.name})")
