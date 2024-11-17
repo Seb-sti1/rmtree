@@ -10,9 +10,6 @@ from rmtree.struct.file import list_files
 logger = logging.getLogger(__name__)
 
 
-# TODO readme
-
-
 def get_verbosity(verbose: int):
     if verbose == 0:
         return logging.CRITICAL
@@ -56,7 +53,9 @@ def main(args=None):
     print(f"{count_compatibility_errors} detected compatibility errors.")
     print(f"{count_assertion_errors} detected assertion errors.")
 
-    if (not args.test_compatibility) and (count_assertion_errors == 0 or args.i) and count_compatibility_errors == 0:
+    if ((not args.test_compatibility)
+            and (count_assertion_errors == 0 or args.ignore_assertion)
+            and count_compatibility_errors == 0):
         # export all the files
         files = list_files(args.src)
         progress = tqdm(files.items())
