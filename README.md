@@ -95,9 +95,6 @@ reMarkable updates the page to v6.**
 - [Background template aren't exactly aligned](https://github.com/Seb-sti1/rmc/issues/4)
 - [Missing background templates](https://github.com/Seb-sti1/rmtree/issues/4)
   (`P Lines small`,  `P Grid medium`, `P Grid large`, `P Lines medium`, `P Checklist`)
-- `Unknown block type 13` or `Unknown block type 8`: Fixed
-  in [rmscene#24](https://github.com/ricklupton/rmscene/pull/24), waiting for the version to be released.
-- [`AssertionError` on `next_items` in `toposort_items`](https://github.com/ricklupton/rmscene/issues/32)
 
 ## Contributions
 
