@@ -7,7 +7,7 @@ packages = ["rmtree", "rmtree.struct"]
 
 [project]
 name = "rmtree"
-version = "1.0.4"
+version = "1.0.5"
 requires-python = ">=3.10"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -18,8 +18,8 @@ dependencies = [
     "fpdf2",
     "pypdf",
     "cairosvg",
-    "rmc@git+https://github.com/Seb-sti1/rmc.git@bdb353feff968c9061fd4232699e58e95d4429db",
-    "rmscene",
+    "rmc@git+https://github.com/Seb-sti1/rmc.git@f5329f14fe645c0e1a8fa00aa6993ce0d6e6c487",
+    "rmscene@git+https://github.com/Seb-sti1/rmscene.git@239748c3c3e01d2ec66e3c87b5ce921033fef15e",
     "tqdm",
 ]
 
