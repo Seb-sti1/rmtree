@@ -92,7 +92,6 @@ class Notebook(File):
 
         # this is only a pdf
         if all([isinstance(page, PageEmpty) for page in self.content.get_pages()]):
-            logger.debug(f"[pdf] {str(self)} -> {fullpath}")
             shutil.copyfile(background_pdf_path, fullpath + ".pdf")
         else:
             background_pdf = PdfReader(background_pdf_path) if os.path.exists(background_pdf_path) else None
